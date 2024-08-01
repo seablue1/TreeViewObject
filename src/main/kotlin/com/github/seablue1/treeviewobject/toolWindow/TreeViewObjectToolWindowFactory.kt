@@ -13,7 +13,7 @@ import com.github.seablue1.treeviewobject.services.MyProjectService
 import javax.swing.JButton
 
 
-class MyToolWindowFactory : ToolWindowFactory {
+class TreeViewObjectToolWindowFactory : ToolWindowFactory {
 
     init {
         thisLogger().warn("Don't forget to remove all non-needed sample code files with their corresponding registration entries in `plugin.xml`.")
@@ -24,8 +24,6 @@ class MyToolWindowFactory : ToolWindowFactory {
         val content = ContentFactory.getInstance().createContent(myToolWindow.getContent(), null, false)
         toolWindow.contentManager.addContent(content)
     }
-
-    override fun shouldBeAvailable(project: Project) = true
 
     class MyToolWindow(toolWindow: ToolWindow) {
 

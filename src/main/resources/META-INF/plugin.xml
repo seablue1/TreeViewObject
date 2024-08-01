@@ -9,10 +9,8 @@
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.seablue1.treeviewobject.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <toolWindow factoryClass="com.github.seablue1.treeviewobject.toolWindow.TreeViewObjectToolWindowFactory" id="TreeViewObject"/>
     </extensions>
 
-    <applicationListeners>
-        <listener class="com.github.seablue1.treeviewobject.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-    </applicationListeners>
+
 </idea-plugin>
