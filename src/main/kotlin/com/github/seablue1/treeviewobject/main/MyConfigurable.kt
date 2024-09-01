@@ -14,11 +14,11 @@ class MyConfigurable : Configurable {
         settingGui = null
     }
 
-    var settingGui: MySettingGui? = null
+    var settingGui: MySettingUI? = null
 
     override fun createComponent(): JComponent? {
-        val store: MyStore? = MyStoreService.Companion.getMyStore()
-        settingGui = MySettingGui(store)
+        val store: MyStore = MyStoreService.Companion.getMyStore()
+        settingGui = MySettingUI(store)
         return settingGui!!.root
     }
 

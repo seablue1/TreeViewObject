@@ -8,7 +8,7 @@ import com.intellij.openapi.components.Storage
 import java.util.*
 
 @State(name = "TreeViewObjectSetting", storages = [Storage("TreeViewObjectSetting.xml")])
-class MyStoreService : PersistentStateComponent<MyStore?> {
+class MyStoreService : PersistentStateComponent<MyStore> {
     class MyStore {
         var showNote: Boolean = true
         var deep: Int = 10
@@ -28,7 +28,7 @@ class MyStoreService : PersistentStateComponent<MyStore?> {
 
     var myStore: MyStore = MyStore()
 
-    override fun getState(): MyStore? {
+    override fun getState(): MyStore {
         return myStore
     }
 
@@ -37,7 +37,7 @@ class MyStoreService : PersistentStateComponent<MyStore?> {
     }
 
     companion object {
-        fun getMyStore(): MyStore? {
+        fun getMyStore(): MyStore {
             val service = ApplicationManager.getApplication().getService(MyStoreService::class.java)
             return service.state
         }

@@ -75,10 +75,10 @@ class MainPanel : JPanel(), Disposable {
                 // System.out.println(e.getKeyCode() == KeyEvent.VK_C);
                 if (e.isControlDown && e.keyCode == KeyEvent.VK_C) {
                     var list: MutableList<String?> = ArrayList()
-                    var node = tree.lastSelectedPathComponent as DefaultMutableTreeNode
+                    var node = tree.lastSelectedPathComponent as DefaultMutableTreeNode?
                     do {
-                        list.add(node.userObject.toString())
-                        node = node.parent as DefaultMutableTreeNode
+                        list.add(node!!.userObject.toString())
+                        node = node!!.parent as DefaultMutableTreeNode?
                     } while (node != null)
 
                     list = Lists.reverse(list)
@@ -190,11 +190,11 @@ class MainPanel : JPanel(), Disposable {
 
 
         tree.addTreeSelectionListener { e: TreeSelectionEvent? ->
-            var node = tree.lastSelectedPathComponent as DefaultMutableTreeNode ?: return@addTreeSelectionListener
+            var node = tree.lastSelectedPathComponent as DefaultMutableTreeNode?
             val leaf = node
             var jLabelList: MutableList<JLabel> = ArrayList()
             do {
-                val myNode1 = node.userObject as MyNode
+                val myNode1 = node!!.userObject as MyNode
                 var text = myNode1.name
                 if (node !== leaf) {
                     text = "$text  >  "
@@ -211,7 +211,7 @@ class MainPanel : JPanel(), Disposable {
 
                 jLabelList.add(jLabel)
 
-                node = node.parent as DefaultMutableTreeNode
+                node = node!!.parent as DefaultMutableTreeNode?
             } while (node != null)
 
             jLabelList = Lists.reverse(jLabelList)

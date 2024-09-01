@@ -5,7 +5,7 @@ import javax.swing.JCheckBox
 import javax.swing.JPanel
 import javax.swing.JTextField
 
-class MySettingGui(store: MyStore) {
+class MySettingUI (store: MyStore){
     var root: JPanel? = null
     var checkBox: JCheckBox? = null
     var deep: JTextField? = null
