@@ -8,7 +8,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="com.github.seablue1.treeviewobject.main.TreeViewObject" id="TreeViewObject" anchor="bottom" canCloseContents="true"/>
-        <applicationConfigurable instance="com.github.seablue1.treeviewobject.main.MyConfigurable" id="MyConfigurable"/>
+        <applicationConfigurable instance="com.github.seablue1.treeviewobject.main.MyConfigurable" id="MyConfigurable" displayName="TreeViewObject"/>
         <applicationService serviceImplementation="com.github.seablue1.treeviewobject.main.MyStoreService"></applicationService>
     </extensions>
 
