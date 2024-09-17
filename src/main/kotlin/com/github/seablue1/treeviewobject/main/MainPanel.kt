@@ -8,7 +8,9 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsSafe
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.KeyStrokeAdapter
 import com.intellij.ui.SimpleTextAttributes
@@ -24,10 +26,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTextField
-import javax.swing.JTree
+import javax.swing.*
 import javax.swing.event.TreeSelectionEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
@@ -65,24 +64,118 @@ class MainPanel : JPanel(), Disposable {
                     e.consume()
                     val node = tree.lastSelectedPathComponent as DefaultMutableTreeNode
                     navigate(node, project)
+                }else if(e.clickCount == 1 && e.button == MouseEvent.BUTTON3){
+                    val node = tree.lastSelectedPathComponent as DefaultMutableTreeNode
+
+
+                    val popupMenu = JPopupMenu()
+                    val menuItem1 = JMenuItem("复制节点路径")
+                    val menuItem2 = JMenuItem("跳转到getter")
+                    val menuItem3 = JMenuItem("跳转到setter")
+
+                    menuItem1.addActionListener {
+                        val result = getPath(tree)
+                        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+                        clipboard.setContents(StringSelection(result), null)
+                    }
+                    menuItem2.addActionListener{
+                        val node = tree.lastSelectedPathComponent as DefaultMutableTreeNode
+                        val parentNode = (node.parent as DefaultMutableTreeNode?)?.userObject as MyNode?
+                        val nodeInfo = (node.userObject as MyNode)
+
+                        if (parentNode != null) {
+                            ReadAction
+                                .nonBlocking<Runnable?> {
+                                    val fileScope = GlobalSearchScope.allScope(project!!)
+                                    val classes = parentNode.className?.let { JavaPsiFacade.getInstance(project).findClasses(it, fileScope) }
+                                    if (classes != null) {
+                                        for (psiClass in classes) {
+                                            for (field in psiClass.allFields) {
+                                                if (field.name == nodeInfo.name) {
+
+                                                    val getterName = "get" + field.name
+                                                    val booleanGetterName = "is" + field.name
+
+                                                    for (method in psiClass.allMethods) {
+                                                        if (StringUtils.equalsIgnoreCase(method.name, getterName)
+                                                            || StringUtils.equalsIgnoreCase(method.name, booleanGetterName)) {
+                                                            return@nonBlocking Runnable { method.navigate(true) }
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                    null
+                                }
+                                .inSmartMode(project!!)
+                                .finishOnUiThread(ModalityState.defaultModalityState()) { task: Runnable? ->
+                                    task?.run()
+                                }
+                                .submit(NonUrgentExecutor.getInstance())
+                        }
+                    }
+                    menuItem3.addActionListener(){
+                        val node = tree.lastSelectedPathComponent as DefaultMutableTreeNode
+                        val parentNode = (node.parent as DefaultMutableTreeNode?)?.userObject as MyNode?
+                        val nodeInfo = (node.userObject as MyNode)
+
+                        if (parentNode != null) {
+                            ReadAction
+                                .nonBlocking<Runnable?> {
+                                    val fileScope = GlobalSearchScope.allScope(project!!)
+                                    val classes = parentNode.className?.let { JavaPsiFacade.getInstance(project).findClasses(it, fileScope) }
+                                    if (classes != null) {
+                                        for (psiClass in classes) {
+                                            for (field in psiClass.allFields) {
+                                                if (field.name == nodeInfo.name) {
+
+                                                    val setterName = "set" + field.name
+
+                                                    for (method in psiClass.allMethods) {
+                                                        if (StringUtils.equalsIgnoreCase(method.name, setterName)) {
+                                                            return@nonBlocking Runnable { method.navigate(true) }
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                    null
+                                }
+                                .inSmartMode(project!!)
+                                .finishOnUiThread(ModalityState.defaultModalityState()) { task: Runnable? ->
+                                    task?.run()
+                                }
+                                .submit(NonUrgentExecutor.getInstance())
+                        }
+                    }
+
+                    popupMenu.add(menuItem1)
+                    popupMenu.add(menuItem2)
+                    popupMenu.add(menuItem3)
+                    popupMenu.show(e.component, e.x, e.y);
+                }
+            }
+            override fun mousePressed(e: MouseEvent) {
+                if (e.clickCount == 2) {
+                    e.consume(); // 双击不要展开节点
                 }
             }
         })
 
+
         tree.addKeyListener(object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent) {
-                // System.out.println(e.isControlDown());
-                // System.out.println(e.getKeyCode() == KeyEvent.VK_C);
-                if (e.isControlDown && e.keyCode == KeyEvent.VK_C) {
-                    var list: MutableList<String?> = ArrayList()
-                    var node = tree.lastSelectedPathComponent as DefaultMutableTreeNode?
-                    do {
-                        list.add(node!!.userObject.toString())
-                        node = node!!.parent as DefaultMutableTreeNode?
-                    } while (node != null)
+                val isMac = SystemInfo.isMac
+                val isCopyKey = if (isMac)
+                        e.isMetaDown && e.keyCode == KeyEvent.VK_C
+                    else e.isControlDown && e.keyCode == KeyEvent.VK_C
 
-                    list = Lists.reverse(list)
-                    val result = java.lang.String.join(MyStoreService.Companion.getMyStore()!!.split, list)
+                if (isCopyKey) {
+                    val result = getPath(tree)
 
                     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
                     clipboard.setContents(StringSelection(result), null)
@@ -221,6 +314,19 @@ class MainPanel : JPanel(), Disposable {
         this.layout = BorderLayout()
         this.add(topPanel, BorderLayout.NORTH)
         this.add(JBScrollPane(tree), BorderLayout.CENTER)
+    }
+
+    private fun getPath(tree: MyTree): String {
+        var list: MutableList<String?> = ArrayList()
+        var node = tree.lastSelectedPathComponent as DefaultMutableTreeNode?
+        do {
+            list.add(node!!.userObject.toString())
+            node = node!!.parent as DefaultMutableTreeNode?
+        } while (node != null)
+
+        list = Lists.reverse(list)
+        val result = java.lang.String.join(MyStoreService.getMyStore()!!.split, list)
+        return result
     }
 
     fun navigate(node: DefaultMutableTreeNode?, project: Project?) {
