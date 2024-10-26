@@ -45,7 +45,13 @@ class MainAction : AnAction() {
         var uClass: UClass? = null
         if (editor != null) {
             val elementAt = psiFile!!.findElementAt(editor.caretModel.offset)
-            uClass = elementAt.findContaining(UClass::class.java)
+            if (elementAt is PsiIdentifier) {
+                if (elementAt.parent is PsiReference) {
+                    val reference = elementAt.parent as PsiReference
+                    val resolve = reference.resolve()
+                    uClass = resolve.findContaining(UClass::class.java)
+                }
+            }
         }
 
         if (uClass == null) {
